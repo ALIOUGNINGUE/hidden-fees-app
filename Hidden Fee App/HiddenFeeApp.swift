@@ -8,10 +8,10 @@
 import SwiftUI
 
 @main
-struct Hidden_Fee_AppApp: App {
+struct HiddenFeeApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView()
         }
     }
 }
