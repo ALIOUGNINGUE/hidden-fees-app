@@ -21,12 +21,7 @@ struct HomeView: View {
            ScrollView {
                VStack(alignment: .leading, spacing: 24) {
                    VStack(alignment: .leading, spacing: 8) {
-                       Label("CONTRACT SCANNER", systemImage: "eye")
-                           .font(.caption.weight(.bold))
-                           .tracking(2)
-                           .foregroundStyle(Color.accentColor)
-
-                       Text("Know what you\nsigned up for.")
+                       Text("Know what you\nsigned up for")
                            .font(.system(size: 32, weight: .bold))
                            .foregroundStyle(.white)
 
@@ -37,9 +32,9 @@ struct HomeView: View {
                    .padding(.top, 8)
                    VStack(alignment: .leading, spacing: 12) {
                        Text("WHAT ARE YOU SCANNING?")
-                           .font(.caption.weight(.semibold))
+                           .font(.caption.weight(.bold))
                            .tracking(1)
-                           .foregroundStyle(.gray)
+                           .foregroundStyle(.white)
                        LazyVGrid(columns: columns, spacing: 12) {
                            ForEach(DocumentType.allTypes) { docType in
                                DocumentTypeCard(docType: docType)
