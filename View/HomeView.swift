@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HomeView: View {
-
+    
    @State private var path: [FlowRoute] = []
 
    private let columns = [
@@ -17,6 +17,7 @@ struct HomeView: View {
    ]
 
    var body: some View {
+       
        NavigationStack(path: $path) {
            ScrollView {
                VStack(alignment: .leading, spacing: 24) {
