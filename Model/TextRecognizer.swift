@@ -1,5 +1,13 @@
 //
 //  TextRecognizer.swift
+//  Hidden Fee App
+//
+//  Created by Apple on 7/16/26.
+//
+
+
+//
+//  TextRecognizer.swift
 //  Scanner App
 //
 //  Created by Apple on 7/6/26.

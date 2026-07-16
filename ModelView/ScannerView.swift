@@ -1,9 +1,10 @@
 //
 //  ScannerView.swift
-//  Scanner App
+//  Hidden Fee App
 //
-//  Created by Apple on 7/6/26.
+//  Created by Apple on 7/16/26.
 //
+
 
 import SwiftUI
 import VisionKit

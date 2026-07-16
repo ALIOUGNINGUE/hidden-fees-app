@@ -11,19 +11,23 @@ import VisionKit
 
 struct DocumentUploadView: View {
     let docType: DocumentType
-    
+
     @Environment(\.dismiss) private var dismiss
- 
+
     @State private var pages: [UIImage] = []
- 
+
+    // Drives the "scan or upload" popup shown when the upload area is tapped.
+    @State private var isShowingSourceOptions = false
+
     @State private var isShowingPhotoPicker = false
     @State private var isShowingScanner = false
     @State private var isShowingFilePicker = false
     @State private var photoSelection: [PhotosPickerItem] = []
- 
+
     @State private var isShowingResults = false
     @State private var scannerViewModel = ScannerViewModel()
-    
+    @State private var recognizedText: [String]?
+
     var body: some View {
         VStack{
             VStack() {
@@ -66,22 +70,55 @@ struct DocumentUploadView: View {
                     .disabled(pages.isEmpty)
                 }
             }
-            
-        }.preferredColorScheme(.dark)
+        }
+        .preferredColorScheme(.dark)
+        // Tapping the upload area presents this popup instead of jumping
+        // straight to the photo picker.
+        .sheet(isPresented: $isShowingSourceOptions) {
+            SourceOptionsSheet(
+                docType: docType,
+                onScan: {
+                    isShowingSourceOptions = false
+                    // Wait for the sheet to fully dismiss before presenting the
+                    // camera full screen — presenting both at once can crash.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        isShowingScanner = true
+                    }
+                },
+                onUpload: {
+                    isShowingSourceOptions = false
+                    isShowingPhotoPicker = true
+                },
+                onFile: {
+                    isShowingSourceOptions = false
+                    isShowingFilePicker = true
+                }
+            )
+            .presentationDetents([.height(320)])
+            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(24)
+            .presentationBackground(.black)
+        }
+        // Camera fills the whole screen, like the system Notes/Files scanner.
+        .fullScreenCover(isPresented: $isShowingScanner) {
+            ScannerView { recognizedText in
+                isShowingScanner = false
+                handleScanResult(recognizedText)
+            }
+            .ignoresSafeArea()
+        }
     }
     private var uploadArea: some View {
         Button {
-            isShowingPhotoPicker = true
+            isShowingSourceOptions = true
         } label: {
             VStack(spacing: 12) {
                 Image(systemName: "photo.badge.plus")
                     .font(.system(size: 32))
                     .foregroundStyle(.gray)
- 
                 Text("Add document screenshots")
                     .font(.headline)
                     .foregroundStyle(.white)
- 
                 Text("Every page counts — add the full document for best results")
                     .font(.caption)
                     .foregroundStyle(.gray)
@@ -95,23 +132,6 @@ struct DocumentUploadView: View {
                     .foregroundStyle(.gray.opacity(0.5))
             )
         }
-        .contextMenu {
-            Button {
-                isShowingPhotoPicker = true
-            } label: {
-                Label("Photo Library", systemImage: "photo.on.rectangle")
-            }
-            Button {
-                isShowingScanner = true
-            } label: {
-                Label("Scan with Camera", systemImage: "camera")
-            }
-            Button {
-                isShowingFilePicker = true
-            } label: {
-                Label("Choose File", systemImage: "folder")
-            }
-        }
     }
     private var flagSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -119,7 +139,6 @@ struct DocumentUploadView: View {
                 .font(.caption.weight(.semibold))
                 .tracking(1)
                 .foregroundStyle(.gray)
- 
             let cols = [GridItem(.flexible()), GridItem(.flexible())]
             LazyVGrid(columns: cols, alignment: .leading, spacing: 10) {
                 ForEach(docType.flagLabels) { label in
@@ -137,7 +156,6 @@ struct DocumentUploadView: View {
         .padding()
         .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
     }
-    
     private var pageThumbnails: some View {
         Text("hello")
     }
@@ -148,11 +166,23 @@ struct DocumentUploadView: View {
             if case .review = scannerViewModel.state {
                 isShowingResults = true
             }
-        } 
+        }
+    }
+
+    /// Called after the camera finishes. `recognizedText` is nil if the user
+    /// cancelled or recognition failed — otherwise one string per scanned page.
+    private func handleScanResult(_ recognizedText: [String]?) {
+        guard let recognizedText, !recognizedText.isEmpty else { return }
+
+        self.recognizedText = recognizedText
+
+        // TextRecognizer already ran OCR, so we skip process(images:) entirely
+        // and hand the combined text straight to the model for review.
+        let combinedText = recognizedText.joined(separator: "\n\n")
+        scannerViewModel.loadSampleText(combinedText)
+        isShowingResults = true
     }
 }
-
-
 #Preview {
     DocumentUploadView(docType: .creditCard)
 }
