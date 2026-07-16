@@ -23,10 +23,8 @@ struct FeeAnalyzer {
         self.filterInstructions = "You help students identify confusing language in texts."
     }
     
-    /// Returns a FlaggedFee if the sentence is hidden, nil if clear.
     func analyze(sentence: String, context: String) async -> FlaggedFee? {
         
-        // Step 1: guarded filter on the original
         do {
             let verdict = try await runGuardedFilter(text: sentence, context: context)
             if verdict {
@@ -38,12 +36,10 @@ struct FeeAnalyzer {
             // Guarded filter refused — fall through to translation path
         }
         
-        // Step 2: translate with the unguarded model
         guard let plainEnglish = try? await translator.translate(sentence) else {
             return FlaggedFee(originalText: sentence, plainText: nil, chunkIndex: 0, source: .guardrailRefused)
         }
         
-        // Step 3: guarded filter on the translation
         do {
             let verdict = try await runGuardedFilter(text: plainEnglish, context: plainEnglish)
             return verdict
