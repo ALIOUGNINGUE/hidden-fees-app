@@ -15,22 +15,29 @@ struct HiddenFeeVerdict {
 struct HiddenFeeFilter {
     
     let documentType: String
+    private let model: SystemLanguageModel
+    private let filterInstructions: String
+    
+    init(documentType: String) {
+        self.documentType = documentType
+        self.model = SystemLanguageModel.default
+        self.filterInstructions = """
+        You are a consumer financial literacy tool that helps people understand \
+        contract language. Your only job is to evaluate whether a sentence from \
+        a financial document is written clearly enough for a typical reader to \
+        understand its full consequences. This is educational analysis only.
+        """
+    }
     
     func evaluate(sentence: String, context: String) async throws -> FlaggedFee? {
+        // Fresh session per call — keeps evaluations independent
         let session = LanguageModelSession(
-            instructions: """
-            You are a consumer financial literacy tool that helps people understand \
-            contract language. Your only job is to evaluate whether a sentence from \
-            a financial document is written clearly enough for a typical reader to \
-            understand its full consequences. This is educational analysis only.
-            """
+            model: model,
+            instructions: filterInstructions
         )
         
         let cleanContext = TextSanitizer.sanitize(context)
         let cleanSentence = TextSanitizer.sanitize(sentence)
-        
-        print("SENDING CONTEXT: \(cleanContext.prefix(90))")
-        print("SENDING SENTENCE: \(cleanSentence.prefix(90))")
         
         let prompt = """
         Here is a paragraph from a contract:
@@ -54,11 +61,11 @@ struct HiddenFeeFilter {
                 generating: HiddenFeeVerdict.self
             )
             if response.content.isClear {
-                return nil   // not flagged
+                return nil
             }
-            return FlaggedFee(originalText: sentence, chunkIndex: 0, source: .aiJudged)
+            return FlaggedFee(originalText: sentence, plainText: sentence, chunkIndex: 0, source: .aiJudged)
         } catch LanguageModelSession.GenerationError.refusal {
-            return FlaggedFee(originalText: sentence, chunkIndex: 0, source: .guardrailRefused)
+            return FlaggedFee(originalText: sentence, plainText: sentence, chunkIndex: 0, source: .guardrailRefused)
         }
     }
 }

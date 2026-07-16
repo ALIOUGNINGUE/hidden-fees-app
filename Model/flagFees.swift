@@ -8,6 +8,7 @@ import SwiftUI
 struct FlaggedFee: Identifiable {
     let id = UUID()
     let originalText: String
+    let plainText: String?
     let chunkIndex: Int
     let source: FlagSource
     

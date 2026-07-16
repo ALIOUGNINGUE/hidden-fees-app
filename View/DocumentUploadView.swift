@@ -120,24 +120,23 @@ struct DocumentUploadView: View {
                 .tracking(1)
                 .foregroundStyle(.gray)
  
-            let cols = [GridItem(.flexible()), GridItem(.flexible())]
-            LazyVGrid(columns: cols, alignment: .leading, spacing: 10) {
-                ForEach(docType.flagLabels) { label in
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(label.dotColor)
-                            .frame(width: 8, height: 8)
-                        Text(label.text)
-                            .font(.subheadline)
-                            .foregroundStyle(.white)
-                    }
-                }
+          //  let cols = [GridItem(.flexible()), GridItem(.flexible())]
+          //  LazyVGrid(columns: cols, alignment: .leading, spacing: 10) {
+              //  ForEach(docType.flagLabels) { label in
+                 //   HStack(spacing: 8) {
+                  //      Circle()
+                        //    .fill(label.dotColor)
+                        //    .frame(width: 8, height: 8)
+                     //   Text(label.text)
+                     //       .font(.subheadline)
+                       //     .foregroundStyle(.white)
+                //    }
+             //   }
             }
         }
-        .padding()
-        .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
-    }
-    
+      //  .padding()
+    //    .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
+
     private var pageThumbnails: some View {
         Text("hello")
     }
@@ -148,10 +147,9 @@ struct DocumentUploadView: View {
             if case .review = scannerViewModel.state {
                 isShowingResults = true
             }
-        } 
+        }
     }
 }
-
 
 #Preview {
     DocumentUploadView(docType: .creditCard)
