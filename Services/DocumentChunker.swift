@@ -5,6 +5,48 @@
 //  Created by Everyone Can Code Chicago on 7/9/26.
 //
 import SwiftUI
+struct HeadingDetector {
+    
+    /// Returns true if this fragment is a heading with no content of its own.
+    static func isHeading(_ text: String) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Long text is never a heading
+        let wordCount = trimmed.split(separator: " ").count
+        if wordCount > 8 { return false }
+        
+        // Contains a number, dollar sign, or percentage → has content
+        if trimmed.range(of: #"[\d$%]"#, options: .regularExpression) != nil {
+            return false
+        }
+        
+        // Contains a colon with content after it → has content
+        if let colonIndex = trimmed.firstIndex(of: ":") {
+            let afterColon = trimmed[trimmed.index(after: colonIndex)...]
+                .trimmingCharacters(in: .whitespaces)
+            if !afterColon.isEmpty { return false }
+        }
+        
+        // Says "none" or "n/a" → that's an answer, not a heading
+        let lowered = trimmed.lowercased()
+        if lowered.contains("none") || lowered.contains("n/a") {
+            return false
+        }
+        
+        // Contains a verb that indicates a clause
+        let clauseVerbs = [
+            " will ", " may ", " must ", " shall ", " can ",
+            " is ", " are ", " was ", " were ", " have ", " has ",
+            " do ", " does ", " apply ", " charged ", " pays "
+        ]
+        if clauseVerbs.contains(where: { lowered.contains($0) }) {
+            return false
+        }
+        
+        // Short, no numbers, no colon content, no verb → heading
+        return true
+    }
+}
 struct SentenceSplitter {
     
         static func normalizeNumbers(_ text: String) -> String {
