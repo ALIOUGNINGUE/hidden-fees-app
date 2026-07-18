@@ -53,7 +53,6 @@ struct DocumentUploadView: View {
                     if !pages.isEmpty {
                         pageThumbnails
                     }
-                    flagSection
                     Spacer(minLength: 40)
                     Button {
                         startScan()
