@@ -1,22 +1,39 @@
 import SwiftUI
-import FoundationModels
 
 struct ContentView: View {
     var body: some View {
         Text("Check the console")
             .onAppear {
-                // Penalty Rate + Minimum Payment Trap
-                let categories: [FeeCategory] = [.penaltyRate, .minimumPaymentTrap]
-                let severity = SeverityLevel.calculate(from: categories)
-                print("Penalty Rate + Minimum Payment Trap: \(severity.label)")
-                
-                // Just junk fee
-                let junk = SeverityLevel.calculate(from: [.junkFee])
-                print("Junk Fee alone: \(junk.label)")
-                
-                // Deferred interest alone
-                let deferred = SeverityLevel.calculate(from: [.deferredInterest])
-                print("Deferred Interest alone: \(deferred.label)")
+                Task {
+                    let pipeline = PipelineOrchestrator(
+                        documentType: .creditCard
+                    )
+                    let chunks = OCRStub.fakeCreditCardChunks()
+                    
+                    print("=== RUNNING FULL PIPELINE ===")
+                    print("Chunks: \(chunks.count)")
+                    print("")
+                    
+                    let report = await pipeline.process(chunks: chunks)
+                    
+                    print("=== SCAN REPORT ===")
+                    print(report.summaryLine)
+                    print("")
+                    
+                    for finding in report.sortedFindings {
+                        let categoryNames = finding.categories
+                            .map { $0.displayName }
+                            .joined(separator: " + ")
+                        print("\(finding.severity.label)")
+                        print("Categories: \(categoryNames)")
+                        print("Original:  \(finding.originalText.prefix(70))")
+                        print("Plain:     \(finding.plainEnglish.prefix(70))")
+                        print("Source:    \(finding.source)")
+                        print("---")
+                    }
+                    
+                    print("=== DONE ===")
+                }
             }
     }
 }

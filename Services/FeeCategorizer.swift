@@ -81,6 +81,72 @@ struct FeeCategorizer {
         
         return confirmed
     }
+
+        private func isExplanatoryOrProtective(_ text: String) -> Bool {
+            let lowered = text.lowercased()
+            
+            let protectivePhrases = [
+                "how to avoid",
+                "avoid paying",
+                "will not pay",
+                "will not charge",
+                "we will not",
+                "no interest if",
+                "to learn more",
+                "tips from"
+            ]
+            if protectivePhrases.contains(where: { lowered.contains($0) }) {
+                return true
+            }
+            
+            let mentionsTransactionType = lowered.contains("balance transfer")
+                || lowered.contains("cash advance")
+            let looksLikeRate = lowered.contains("apr")
+            let looksLikeFee = lowered.contains("$")
+                || lowered.contains("whichever is greater")
+                || lowered.contains("either")
+            
+            if mentionsTransactionType && looksLikeRate && !looksLikeFee {
+                return true
+            }
+            
+            return false
+        }
+    func categorizeByKeywords(
+          originalText: String,
+          plainText: String,
+          documentType: DocumentType
+      ) -> [FeeCategory] {
+          if isExplanatoryOrProtective(originalText) {
+                    return []
+                }
+          let searchText = (JargonCleaner.clean(originalText) + " " + plainText).lowercased()
+          
+          var candidates: [(category: FeeCategory, score: Int)] = []
+          
+          for category in documentType.categories {
+              var score = 0
+              for (word, weight) in category.keywords {
+                  if searchText.contains(word.lowercased()) {
+                      score += weight
+                  }
+              }
+              if score >= category.threshold {
+                  candidates.append((category, score))
+              }
+          }
+          
+          // No AI fallback — if nothing cleared its threshold, return empty
+          guard !candidates.isEmpty else {
+              return []
+          }
+          
+          // Sort by score, highest first
+          candidates.sort { $0.score > $1.score }
+          
+          // Return every category that cleared its threshold (multi-category support)
+          return candidates.map { $0.category }
+      }
     private func confirmCategory(
         plainText: String,
         category: FeeCategory
