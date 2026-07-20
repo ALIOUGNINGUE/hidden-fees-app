@@ -2,6 +2,14 @@
 //  ContactView.swift
 //  Hidden Fee App
 //
+//  Created by Apple on 7/20/26.
+//
+
+
+//
+//  ContactView.swift
+//  Hidden Fee App
+//
 //  Contact tab — support/feedback info for the user to reach out.
 //
 

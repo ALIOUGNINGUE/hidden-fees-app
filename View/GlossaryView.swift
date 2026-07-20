@@ -2,6 +2,14 @@
 //  GlossaryView.swift
 //  Hidden Fee App
 //
+//  Created by Apple on 7/20/26.
+//
+
+
+//
+//  GlossaryView.swift
+//  Hidden Fee App
+//
 //  Glossary tab — plain-language definitions for terms users will see
 //  flagged in their documents (APR, penalty rate, etc).
 //

@@ -2,6 +2,14 @@
 //  HistoryView.swift
 //  Hidden Fee App
 //
+//  Created by Apple on 7/20/26.
+//
+
+
+//
+//  HistoryView.swift
+//  Hidden Fee App
+//
 //  History tab — shows past scans. Currently a placeholder; wire up
 //  real persisted scan records (e.g. SwiftData/CoreData) when ready.
 //

@@ -24,7 +24,15 @@ struct RootView: View {
                 .tabItem {
                     Label("Glossary", systemImage: "book.closed")
                 }
+            
+            ContactView()
+                          .tabItem {
+                              Label("Contact", systemImage: "envelope")
+                          }
+            
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black.ignoresSafeArea())
         .tint(.white)
         .preferredColorScheme(.dark)
         .onAppear {
