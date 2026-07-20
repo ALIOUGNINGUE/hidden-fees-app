@@ -97,7 +97,7 @@ struct DocumentUploadView: View {
             .presentationCornerRadius(24)
             .presentationBackground(.black)
         }
-        // Camera fills the whole screen, like the system Notes/Files scanner.
+        
         .fullScreenCover(isPresented: $isShowingScanner) {
             ScannerView { recognizedText in
                 isShowingScanner = false
@@ -118,6 +118,16 @@ struct DocumentUploadView: View {
                     ProgressView()
                 }
             }
+        }
+        .photosPicker(
+            isPresented: $isShowingPhotoPicker,
+            selection: $photoSelection,
+            maxSelectionCount: 20,
+            matching: .images
+        )
+        .onChange(of: photoSelection) { _, newItems in
+            guard !newItems.isEmpty else { return }
+            Task { await handlePickedPhotos(newItems) }
         }
     }
     private var uploadArea: some View {
@@ -144,6 +154,13 @@ struct DocumentUploadView: View {
                     .foregroundStyle(.gray.opacity(0.5))
             )
         }
+        .fileImporter(
+                   isPresented: $isShowingFilePicker,
+                   allowedContentTypes: [.image, .pdf],
+                   allowsMultipleSelection: true
+               ) { result in
+                   Task { await handleFileImport(result) }
+               }
     }
     private var pageThumbnails: some View {
         Text("hello")
@@ -162,6 +179,52 @@ struct DocumentUploadView: View {
             }
         }
     }
+    private func handlePickedPhotos(_ items: [PhotosPickerItem]) async {
+            var images: [UIImage] = []
+            for item in items {
+                if let data = try? await item.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    images.append(image)
+                }
+            }
+            photoSelection = []
+            
+            guard !images.isEmpty else { return }
+            
+            // Run OCR on the screenshots, then the pipeline
+            let ocr = OCRService()
+            guard let text = try? await ocr.recognizeText(in: images) else { return }
+            
+            await scannerViewModel.analyze(text: text, documentType: docType)
+            if case .review = scannerViewModel.state {
+                isShowingResults = true
+            }
+        }
+    private func handleFileImport(_ result: Result<[URL], Error>) async {
+            guard let urls = try? result.get() else { return }
+            
+            var images: [UIImage] = []
+            
+            for url in urls {
+                guard url.startAccessingSecurityScopedResource() else { continue }
+                defer { url.stopAccessingSecurityScopedResource() }
+                
+                if let data = try? Data(contentsOf: url),
+                   let image = UIImage(data: data) {
+                    images.append(image)
+                }
+            }
+            
+            guard !images.isEmpty else { return }
+            
+            let ocr = OCRService()
+            guard let text = try? await ocr.recognizeText(in: images) else { return }
+            
+            await scannerViewModel.analyze(text: text, documentType: docType)
+            if case .review = scannerViewModel.state {
+                isShowingResults = true
+            }
+        }
 }
 #Preview {
     DocumentUploadView(docType: .creditCard)
