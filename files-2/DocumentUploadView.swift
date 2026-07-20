@@ -4,6 +4,14 @@
 //
 //  Created by Everyone Can Code Chicago on 7/2/26.
 //
+//  CHANGES:
+//  - Both scan paths (camera + photo library) now push to ResultsView,
+//    which runs chunkDocument -> PipelineOrchestrator and saves history.
+//    Previously the camera path stopped at loadSampleText(combinedText)
+//    and nothing ever produced a ScanReport.
+//  - Removed unused `isShowingResults` / `recognizedText` state in favor
+//    of a single `pendingScan` that drives navigation.
+//
 
 import SwiftUI
 import PhotosUI
@@ -24,9 +32,10 @@ struct DocumentUploadView: View {
     @State private var isShowingFilePicker = false
     @State private var photoSelection: [PhotosPickerItem] = []
 
-    @State private var isShowingResults = false
     @State private var scannerViewModel = ScannerViewModel()
-    @State private var recognizedText: [String]?
+
+    // Set once OCR text is ready for a document; presence drives navigation to ResultsView.
+    @State private var pendingScan: PendingScan?
 
     var body: some View {
         VStack{
@@ -106,6 +115,11 @@ struct DocumentUploadView: View {
             }
             .ignoresSafeArea()
         }
+        // Pushes to results once OCR text is ready, from either the camera
+        // path or the "Scan N pages" button (photo library path).
+        .navigationDestination(item: $pendingScan) { pending in
+            ResultsView(docType: pending.docType, rawText: pending.rawText)
+        }
     }
     private var uploadArea: some View {
         Button {
@@ -140,12 +154,12 @@ struct DocumentUploadView: View {
                 .foregroundStyle(.gray)
             let cols = [GridItem(.flexible()), GridItem(.flexible())]
             LazyVGrid(columns: cols, alignment: .leading, spacing: 10) {
-                ForEach(docType.flagLabels) { label in
+                ForEach(docType.categories) { category in
                     HStack(spacing: 8) {
                         Circle()
-                            .fill(label.dotColor)
+                            .fill(dotColor(for: category))
                             .frame(width: 8, height: 8)
-                        Text(label.text)
+                        Text(category.displayName)
                             .font(.subheadline)
                             .foregroundStyle(.white)
                     }
@@ -158,12 +172,18 @@ struct DocumentUploadView: View {
     private var pageThumbnails: some View {
         Text("hello")
     }
+
+    private func dotColor(for category: FeeCategory) -> Color {
+        SeverityLevel.calculate(from: [category]).color
+    }
+
+    /// Photo-library path: OCR the picked images, then move to results.
     private func startScan(){
         guard !pages.isEmpty else { return }
         Task {
             await scannerViewModel.process(images: pages)
             if case .review = scannerViewModel.state {
-                isShowingResults = true
+                pendingScan = PendingScan(docType: docType, rawText: scannerViewModel.extractedText)
             }
         }
     }
@@ -173,15 +193,24 @@ struct DocumentUploadView: View {
     private func handleScanResult(_ recognizedText: [String]?) {
         guard let recognizedText, !recognizedText.isEmpty else { return }
 
-        self.recognizedText = recognizedText
-
         // TextRecognizer already ran OCR, so we skip process(images:) entirely
         // and hand the combined text straight to the model for review.
         let combinedText = recognizedText.joined(separator: "\n\n")
         scannerViewModel.loadSampleText(combinedText)
-        isShowingResults = true
+        pendingScan = PendingScan(docType: docType, rawText: combinedText)
     }
 }
+
+/// Wraps the data ResultsView needs so it can drive `.navigationDestination(item:)`,
+/// which requires an Identifiable — a plain (DocumentType, String) tuple won't do.
+private struct PendingScan: Identifiable {
+    let id = UUID()
+    let docType: DocumentType
+    let rawText: String
+}
+
 #Preview {
-    DocumentUploadView(docType: .creditCard)
+    NavigationStack {
+        DocumentUploadView(docType: .creditCard)
+    }
 }

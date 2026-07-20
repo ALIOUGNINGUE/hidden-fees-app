@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		18BDE6EF2FF6FBD000045A75 /* Hidden Fee App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hidden Fee App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		180E488B300EB51F00ECA776 /* Hidden Fee App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "Hidden Fee App.app"; path = "/Users/apple/Documents/hidden-fees-app/build/Debug-iphoneos/Hidden Fee App.app"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		18BDE6F12FF6FBD000045A75 /* Hidden Fee App */ = {
+		180E4809300EB37100ECA776 /* glossary */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Hidden Fee App";
+			path = glossary;
 			sourceTree = "<group>";
 		};
 		72E203512FF7098600D8364B /* View */ = {
@@ -56,17 +56,8 @@
 				72E203542FF709AB00D8364B /* ModelView */,
 				72E203532FF7099F00D8364B /* Model */,
 				72E203512FF7098600D8364B /* View */,
-				18BDE6F12FF6FBD000045A75 /* Hidden Fee App */,
-				18BDE6F02FF6FBD000045A75 /* Products */,
+				180E4809300EB37100ECA776 /* glossary */,
 			);
-			sourceTree = "<group>";
-		};
-		18BDE6F02FF6FBD000045A75 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				18BDE6EF2FF6FBD000045A75 /* Hidden Fee App.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -85,7 +76,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				18BDE6F12FF6FBD000045A75 /* Hidden Fee App */,
+				180E4809300EB37100ECA776 /* glossary */,
 				72E203512FF7098600D8364B /* View */,
 				72E203532FF7099F00D8364B /* Model */,
 				72E203542FF709AB00D8364B /* ModelView */,
@@ -95,7 +86,7 @@
 			packageProductDependencies = (
 			);
 			productName = "Hidden Fee App";
-			productReference = 18BDE6EF2FF6FBD000045A75 /* Hidden Fee App.app */;
+			productReference = 180E488B300EB51F00ECA776 /* Hidden Fee App.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -123,7 +114,7 @@
 			mainGroup = 18BDE6E62FF6FBD000045A75;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 18BDE6F02FF6FBD000045A75 /* Products */;
+			productRefGroup = 18BDE6E62FF6FBD000045A75;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
