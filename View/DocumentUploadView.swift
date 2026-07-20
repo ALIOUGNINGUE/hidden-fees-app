@@ -11,23 +11,23 @@ import VisionKit
 
 struct DocumentUploadView: View {
     let docType: DocumentType
-
+    
     @Environment(\.dismiss) private var dismiss
-
+    
     @State private var pages: [UIImage] = []
-
+    
     // Drives the "scan or upload" popup shown when the upload area is tapped.
     @State private var isShowingSourceOptions = false
-
+    
     @State private var isShowingPhotoPicker = false
     @State private var isShowingScanner = false
     @State private var isShowingFilePicker = false
     @State private var photoSelection: [PhotosPickerItem] = []
-
+    
     @State private var isShowingResults = false
     @State private var scannerViewModel = ScannerViewModel()
     @State private var recognizedText: [String]?
-
+    
     var body: some View {
         VStack{
             VStack() {
@@ -55,7 +55,6 @@ struct DocumentUploadView: View {
                     }
                     Spacer(minLength: 40)
                     Button {
-                        startScan()
                     } label: {
                         HStack {
                             Image(systemName: "magnifyingglass")
@@ -106,6 +105,20 @@ struct DocumentUploadView: View {
             }
             .ignoresSafeArea()
         }
+        .fullScreenCover(isPresented: $isShowingResults) {
+            NavigationStack {
+                if let report = scannerViewModel.report {
+                    ResultsView(report: report)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Button("Done") { isShowingResults = false }
+                            }
+                        }
+                } else {
+                    ProgressView()
+                }
+            }
+        }
     }
     private var uploadArea: some View {
         Button {
@@ -132,54 +145,22 @@ struct DocumentUploadView: View {
             )
         }
     }
-    private var flagSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("WE'LL FLAG")
-                .font(.caption.weight(.semibold))
-                .tracking(1)
-                .foregroundStyle(.gray)
-            let cols = [GridItem(.flexible()), GridItem(.flexible())]
-            LazyVGrid(columns: cols, alignment: .leading, spacing: 10) {
-                ForEach(docType.flagLabels) { label in
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(label.dotColor)
-                            .frame(width: 8, height: 8)
-                        Text(label.text)
-                            .font(.subheadline)
-                            .foregroundStyle(.white)
-                    }
-                }
-            }
-        }
-        .padding()
-        .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
-    }
     private var pageThumbnails: some View {
         Text("hello")
     }
-    private func startScan(){
-        guard !pages.isEmpty else { return }
+    
+    private func handleScanResult(_ recognizedText: [String]?) {
+        guard let recognizedText, !recognizedText.isEmpty else { return }
+        
+        self.recognizedText = recognizedText
+        let combinedText = recognizedText.joined(separator: "\n\n")
+        
         Task {
-            await scannerViewModel.process(images: pages)
+            await scannerViewModel.analyze(text: combinedText, documentType: docType)
             if case .review = scannerViewModel.state {
                 isShowingResults = true
             }
         }
-    }
-
-    /// Called after the camera finishes. `recognizedText` is nil if the user
-    /// cancelled or recognition failed — otherwise one string per scanned page.
-    private func handleScanResult(_ recognizedText: [String]?) {
-        guard let recognizedText, !recognizedText.isEmpty else { return }
-
-        self.recognizedText = recognizedText
-
-        // TextRecognizer already ran OCR, so we skip process(images:) entirely
-        // and hand the combined text straight to the model for review.
-        let combinedText = recognizedText.joined(separator: "\n\n")
-        scannerViewModel.loadSampleText(combinedText)
-        isShowingResults = true
     }
 }
 #Preview {
