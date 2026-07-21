@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct RootView: View {
+    @State private var scanHistory = ScanHistory()
+
     var body: some View {
         TabView {
             HomeView()
@@ -31,6 +33,7 @@ struct RootView: View {
                           }
             
         }
+        .environment(scanHistory)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black.ignoresSafeArea())
         .tint(.white)

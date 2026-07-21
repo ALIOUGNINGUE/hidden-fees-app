@@ -5,21 +5,11 @@
 //  Created by Apple on 7/20/26.
 //
 
-
-//
-//  GlossaryView.swift
-//  Hidden Fee App
-//
-//  Glossary tab — plain-language definitions for terms users will see
-//  flagged in their documents (APR, penalty rate, etc).
-//
-
 import SwiftUI
 
 struct GlossaryView: View {
     @State private var searchText = ""
 
-    // Starter set — expand or load from a JSON/plist asset as it grows.
     private let terms: [GlossaryTerm] = [
         GlossaryTerm(
             term: "Annual Percentage Rate (APR)",
@@ -40,7 +30,19 @@ struct GlossaryView: View {
         GlossaryTerm(
             term: "Grace Period",
             definition: "The window after your statement closes where you can pay in full and avoid interest."
-        )
+        ),
+        GlossaryTerm(
+            term: "Deferred Interest",
+            definition: "Interest that builds up during a promotional period. If you don't pay in full by the deadline, you owe all of it retroactively."
+        ),
+        GlossaryTerm(
+            term: "Capitalized Interest",
+            definition: "Unpaid interest that gets added to your loan balance, so you start paying interest on your interest."
+        ),
+        GlossaryTerm(
+            term: "Early Termination Fee",
+            definition: "A charge for canceling a contract before it expires, sometimes equal to several months of payments."
+        ),
     ]
 
     private var filteredTerms: [GlossaryTerm] {
@@ -53,23 +55,48 @@ struct GlossaryView: View {
 
     var body: some View {
         NavigationStack {
-            List(filteredTerms) { item in
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(item.term)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
-                    Text(item.definition)
-                        .font(.caption)
-                        .foregroundStyle(.gray)
+            ScrollView {
+                if filteredTerms.isEmpty {
+                    VStack(spacing: 14) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.secondary)
+                        Text("No results for \"\(searchText)\"")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 60)
+                } else {
+                    VStack(spacing: 10) {
+                        ForEach(filteredTerms) { item in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(item.term)
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.white)
+                                Text(item.definition)
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                                    .lineSpacing(3)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(16)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 14))
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 40)
                 }
-                .padding(.vertical, 4)
-                .listRowBackground(Color.white.opacity(0.06))
             }
-            .scrollContentBackground(.hidden)
-            .background(Color.black.ignoresSafeArea())
+            .background(Color.black)
             .navigationTitle("Glossary")
+            .toolbarBackground(Color.black, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .searchable(text: $searchText, prompt: "Search terms")
         }
+        .preferredColorScheme(.dark)
     }
 }
 

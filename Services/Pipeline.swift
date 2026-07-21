@@ -18,7 +18,7 @@ struct PipelineOrchestrator {
         for chunk in chunks {
             let sentences = SentenceSplitter.split(chunk: chunk)
             
-            for sentence in sentences {
+            for (sentenceIndex, sentence) in sentences.enumerated() {
                 
                 // Skip headings
                 if HeadingDetector.isHeading(sentence) {
@@ -62,13 +62,18 @@ struct PipelineOrchestrator {
                 
                 let severity = SeverityLevel.calculate(from: finalCategories)
                 
+                let contextBefore = Array(sentences[max(0, sentenceIndex - 2)..<sentenceIndex])
+                let contextAfter  = Array(sentences[(sentenceIndex + 1)..<min(sentences.count, sentenceIndex + 3)])
+
                 let finding = Finding(
                     originalText: sentence,
                     plainEnglish: plainText,
                     categories: finalCategories,
                     severity: severity,
                     source: .aiJudged,
-                    chunkIndex: chunk.originalIndex
+                    chunkIndex: chunk.originalIndex,
+                    contextBefore: contextBefore,
+                    contextAfter: contextAfter
                 )
                 
                 findings.append(finding)

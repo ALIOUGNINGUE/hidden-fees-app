@@ -32,6 +32,14 @@ enum SeverityLevel: String, Comparable {
         case .low:    return "Low — minor"
         }
     }
+
+    var shortLabel: String {
+        switch self {
+        case .high:   return "High"
+        case .medium: return "Medium"
+        case .low:    return "Low"
+        }
+    }
     
     var color: Color {
         switch self {

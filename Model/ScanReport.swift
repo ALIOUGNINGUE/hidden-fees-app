@@ -8,6 +8,15 @@
 import SwiftUI
 import Foundation
 
+@Observable
+final class ScanHistory {
+    var reports: [ScanReport] = []
+
+    func add(_ report: ScanReport) {
+        reports.insert(report, at: 0)
+    }
+}
+
 struct Finding: Identifiable {
     let id = UUID()
     let originalText: String
@@ -16,11 +25,9 @@ struct Finding: Identifiable {
     let severity: SeverityLevel
     let source: FlagSource
     let chunkIndex: Int
-    
-    // Future — not built yet
-    var whyItMatters: String?
-    var questionToAsk: String?
-    
+    let contextBefore: [String]
+    let contextAfter: [String]
+
     enum FlagSource {
         case aiJudged
         case guardrailRefused
