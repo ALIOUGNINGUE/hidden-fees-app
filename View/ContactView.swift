@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct ContactView: View {
+    @State private var showingSettings = false
+    @Environment(VoiceReaderService.self) private var voiceReader
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -72,8 +75,24 @@ struct ContactView: View {
             .navigationTitle("Get in Touch")
             .toolbarBackground(Color.black, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundStyle(.white)
+                    }
+                }
+            }
+            .onAppear {
+                voiceReader.speak("Contact screen. Options to email support, report an issue, or rate the app.")
+            }
         }
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
     }
 }
 
@@ -117,4 +136,5 @@ private struct ContactRow: View {
 
 #Preview {
     ContactView()
+        .environment(VoiceReaderService())
 }

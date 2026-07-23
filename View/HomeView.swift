@@ -10,6 +10,8 @@ import SwiftUI
 struct HomeView: View {
 
     @State private var path: [FlowRoute] = []
+    @State private var showingSettings = false
+    @Environment(VoiceReaderService.self) private var voiceReader
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -30,6 +32,9 @@ struct HomeView: View {
             }
             .background(Color.black)
             .navigationBarHidden(true)
+            .onAppear {
+                voiceReader.speak("Home screen. Select a document type below to scan for hidden fees and fine print.")
+            }
             .navigationDestination(for: FlowRoute.self) { route in
                 switch route {
                 case .upload(let docType):
@@ -40,24 +45,41 @@ struct HomeView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
     }
 
     // MARK: - Sections
 
     private var heroSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(LinearGradient(
-                        colors: [Color(red: 0.2, green: 0.45, blue: 1.0),
-                                 Color(red: 0.55, green: 0.2, blue: 0.85)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 54, height: 54)
-                Image(systemName: "doc.text.magnifyingglass")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(.white)
+            HStack {
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [Color(red: 0.2, green: 0.45, blue: 1.0),
+                                     Color(red: 0.55, green: 0.2, blue: 0.85)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 54, height: 54)
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(.white)
+                }
+
+                Spacer()
+
+                Button {
+                    showingSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .background(Color.white.opacity(0.1), in: Circle())
+                }
             }
             .padding(.top, 8)
 
@@ -158,4 +180,5 @@ enum FlowRoute: Hashable {
 
 #Preview {
     HomeView()
+        .environment(VoiceReaderService())
 }

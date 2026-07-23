@@ -9,6 +9,8 @@ import SwiftUI
 
 struct GlossaryView: View {
     @State private var searchText = ""
+    @State private var showingSettings = false
+    @Environment(VoiceReaderService.self) private var voiceReader
 
     private let terms: [GlossaryTerm] = [
         GlossaryTerm(
@@ -95,8 +97,24 @@ struct GlossaryView: View {
             .toolbarBackground(Color.black, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .searchable(text: $searchText, prompt: "Search terms")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundStyle(.white)
+                    }
+                }
+            }
+            .onAppear {
+                voiceReader.speak("Glossary screen. Browse or search \(terms.count) financial terms and definitions.")
+            }
         }
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
     }
 }
 
@@ -108,4 +126,5 @@ struct GlossaryTerm: Identifiable {
 
 #Preview {
     GlossaryView()
+        .environment(VoiceReaderService())
 }

@@ -9,6 +9,8 @@ import SwiftUI
 
 struct HistoryView: View {
     @Environment(ScanHistory.self) private var scanHistory
+    @Environment(VoiceReaderService.self) private var voiceReader
+    @State private var showingSettings = false
 
     var body: some View {
         NavigationStack {
@@ -37,8 +39,29 @@ struct HistoryView: View {
             .background(Color.black.ignoresSafeArea())
             .toolbarBackground(Color.black, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundStyle(.white)
+                    }
+                }
+            }
+            .onAppear {
+                let count = scanHistory.reports.count
+                if count == 0 {
+                    voiceReader.speak("History screen. No scans recorded yet.")
+                } else {
+                    voiceReader.speak("History screen. You have \(count) previous scan\(count == 1 ? "" : "s").")
+                }
+            }
         }
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
     }
 
     private var emptyState: some View {
@@ -117,4 +140,5 @@ private struct HistoryRow: View {
 #Preview {
     HistoryView()
         .environment(ScanHistory())
+        .environment(VoiceReaderService())
 }
