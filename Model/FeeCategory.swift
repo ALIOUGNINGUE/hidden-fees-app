@@ -121,44 +121,42 @@ extension FeeCategory {
     )
     
     static let universalDefault = FeeCategory(
-        id: "universal_default",
-        displayName: "Universal Default",
-        definition: "A clause that lets this company raise your rate because you were late on a payment to a completely different company. Your credit card rate goes up because you paid your phone bill late.",
-        keywords: [
-            ("universal default", 7),
-            ("cross-default", 7),
-            ("other account", 5),
-            ("other creditor", 5),
-            ("another company", 5),
-            ("different account", 5),
-            ("other lender", 5),
-            ("another lender", 5),
-            ("other obligation", 4),
-        ],
-        threshold: 5,
-        escapeDifficulty: 3,
-        impact: 3
-
-    )
+            id: "universal_default",
+            displayName: "Universal Default",
+            definition: "A clause that lets this company raise your rate because you were late on a payment to a completely different company. Your credit card rate goes up because you paid your phone bill late.",
+            keywords: [
+                ("universal default", 7),
+                ("cross-default", 7),
+                ("other creditor", 6),
+                ("another lender", 6),
+                ("other lender", 6),
+                ("late on another", 6),
+                ("default on other", 6),
+                ("other agreements with us", 5),
+                ("other obligation", 4),
+            ],
+            threshold: 5,
+            escapeDifficulty: 3,
+            impact: 3
+        )
     
     static let minimumPaymentTrap = FeeCategory(
-        id: "minimum_payment_trap",
-        displayName: "Minimum Payment Trap",
-        definition: "Paying only the minimum keeps you in good standing but barely touches the actual debt. A $5,000 balance at 24% with minimum payments could take over 20 years to pay off.",
-        keywords: [
-            ("minimum payment", 6),
-            ("minimum amount due", 6),
-            ("minimum required", 5),
-            ("minimum bill", 5),
-            ("minimum due", 5),
-            ("pay only the minimum", 5),
-            ("minimum", 3),
-        ],
-        threshold: 5,
-        escapeDifficulty: 1,
-        impact: 3
-
-    )
+            id: "minimum_payment_trap",
+            displayName: "Minimum Payment Trap",
+            definition: "Paying only the minimum keeps you in good standing but barely touches the actual debt. A $5,000 balance at 24% with minimum payments could take over 20 years to pay off.",
+            keywords: [
+                ("only the minimum", 6),
+                ("pay only the minimum", 6),
+                ("minimum payment due", 5),
+                ("minimum amount due", 5),
+                ("fail to make a minimum", 5),
+                ("minimum payment", 4),
+                ("minimum required", 3),
+            ],
+            threshold: 5,
+            escapeDifficulty: 1,
+            impact: 3
+        )
     
     // MARK: - Fees & Charges
     
@@ -167,14 +165,14 @@ extension FeeCategory {
         displayName: "Late Fee",
         definition: "An extra charge for not paying by the deadline. Late fees can compound — generating their own interest — or stack, where one missed payment triggers multiple separate fees at once.",
         keywords: [
-            ("late fee", 6),
-            ("late charge", 6),
+            ("late fee", 3),
+            ("late charge", 5),
             ("late payment", 5),
-            ("past due", 5),
-            ("missed payment", 5),
+            ("past due", 4),
+            ("missed payment", 4),
             ("pay late", 5),
             ("paid late", 5),
-            ("delinquent", 5),
+            ("delinquent", 4),
             ("overdue", 4),
             ("not received by", 3),
             ("after the due date", 3),

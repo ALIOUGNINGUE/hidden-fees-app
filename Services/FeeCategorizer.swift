@@ -17,7 +17,16 @@ struct CategoryMatch {
 }
 
 struct FeeCategorizer {
-    
+        private let costSignalRequired: Set<String> = [
+            "cash_advance_fee",
+            "balance_transfer_fee",
+            "foreign_transaction_fee",
+        ]
+        private func hasCostMarker(_ text: String) -> Bool {
+            let markers = ["$", "%", " fee", " fees", " charge", " charging",
+                           " charged", " interest", "whichever is greater"]
+            return markers.contains { text.contains($0) }
+        }
     private let model: SystemLanguageModel
     
     init() {
@@ -93,7 +102,31 @@ struct FeeCategorizer {
                 "we will not",
                 "no interest if",
                 "to learn more",
-                "tips from"
+                "tips from",
+                "your billing rights",
+                "billing rights",
+                "if you think there is an error",
+                "you find a mistake",
+                "we will investigate",
+                "we will research",
+                "you may request a refund",
+                "we will reimburse",
+                "you have the right to reject",
+                "you have the right to",
+                "you can regain",
+                "you can pay down balances faster",
+                "contact us in writing",
+                "we must tell you",
+                "you do not have to pay the first $50",
+                "we do not permit",
+                "do not permit",
+                "we do not allow",
+                "not permitted",
+                "may not use",
+                "applicable law may restrict",
+                "see the rates and fees table",
+                "table above",
+                "indicates amounts",
             ]
             if protectivePhrases.contains(where: { lowered.contains($0) }) {
                 return true
@@ -113,40 +146,53 @@ struct FeeCategorizer {
             return false
         }
     func categorizeByKeywords(
-          originalText: String,
-          plainText: String,
-          documentType: DocumentType
-      ) -> [FeeCategory] {
-          if isExplanatoryOrProtective(originalText) {
-                    return []
+            originalText: String,
+            plainText: String,
+            documentType: DocumentType
+        ) -> [FeeCategory] {
+
+            let searchText = (JargonCleaner.clean(originalText) + " " + plainText).lowercased()
+
+            // Rough sub-sentence split of the original, for scoped suppression.
+            let subSentences = originalText
+                .components(separatedBy: CharacterSet(charactersIn: ".!?\n"))
+                .map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
+                .filter { !$0.isEmpty }
+
+            var candidates: [(category: FeeCategory, score: Int)] = []
+
+            for category in documentType.categories {
+                var score = 0
+                var matchedWords: [String] = []
+                for (word, weight) in category.keywords {
+                    if searchText.contains(word.lowercased()) {
+                        score += weight
+                        matchedWords.append(word.lowercased())
+                    }
                 }
-          let searchText = (JargonCleaner.clean(originalText) + " " + plainText).lowercased()
-          
-          var candidates: [(category: FeeCategory, score: Int)] = []
-          
-          for category in documentType.categories {
-              var score = 0
-              for (word, weight) in category.keywords {
-                  if searchText.contains(word.lowercased()) {
-                      score += weight
-                  }
-              }
-              if score >= category.threshold {
-                  candidates.append((category, score))
-              }
-          }
-          
-          // No AI fallback — if nothing cleared its threshold, return empty
-          guard !candidates.isEmpty else {
-              return []
-          }
-          
-          // Sort by score, highest first
-          candidates.sort { $0.score > $1.score }
-          
-          // Return every category that cleared its threshold (multi-category support)
-          return candidates.map { $0.category }
-      }
+                guard score >= category.threshold else { continue }
+
+                // Transaction-type categories still need a real cost marker
+                if costSignalRequired.contains(category.id) && !hasCostMarker(searchText) {
+                    continue
+                }
+
+                // Scoped suppression: drop this category only if EVERY sub-sentence
+                // that carries one of its keywords is explanatory/protective.
+                let carrying = subSentences.filter { s in
+                    matchedWords.contains { s.contains($0) }
+                }
+                if !carrying.isEmpty && carrying.allSatisfy({ isExplanatoryOrProtective($0) }) {
+                    continue
+                }
+
+                candidates.append((category, score))
+            }
+
+            guard !candidates.isEmpty else { return [] }
+            candidates.sort { $0.score > $1.score }
+            return candidates.map { $0.category }
+        }
     private func confirmCategory(
         plainText: String,
         category: FeeCategory

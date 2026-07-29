@@ -53,7 +53,19 @@ struct ScanReport: Identifiable {
     var sortedFindings: [Finding] {
         findings.sorted { $0.severity > $1.severity }
     }
-    
+    var groupedFindings: [(category: FeeCategory, findings: [Finding])] {
+        var groups: [String: (category: FeeCategory, findings: [Finding])] = [:]
+        for finding in findings {
+            guard let primary = finding.categories.first else { continue }
+            groups[primary.id, default: (primary, [])].findings.append(finding)
+        }
+        return groups.values.sorted { a, b in
+            let sa = SeverityLevel.calculate(from: [a.category])
+            let sb = SeverityLevel.calculate(from: [b.category])
+            if sa != sb { return sa > sb }
+            return a.findings.count > b.findings.count
+        }
+    }
     var severityCounts: [SeverityLevel: Int] {
         var counts: [SeverityLevel: Int] = [:]
         for finding in findings {
